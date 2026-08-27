@@ -1,0 +1,46 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+
+    runs-on: self-hosted
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+
+    - name: Publish
+      run: dotnet publish --configuration Release --output "${{ github.workspace }}\publish"
+
+    - name: Deploy to IIS
+      shell: powershell
+      run: |
+        $source = "${{ github.workspace }}\publish"
+        $destination = "C:\portals\pagetutor"
+
+        Copy-Item "$source\*" "$destination" -Recurse -Force
+
+    - name: Restart IIS Application Pool
+      shell: powershell
+      run: |
+        Import-Module WebAdministration
+        Restart-WebAppPool -Name "pagetutorpool"
