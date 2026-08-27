@@ -43,4 +43,4 @@ jobs:
       shell: powershell
       run: |
         Import-Module WebAdministration
-        Restart-WebAppPool -Name "pagetutorpool"
+        
